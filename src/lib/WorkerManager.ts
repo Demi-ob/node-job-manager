@@ -1,6 +1,8 @@
 import * as express from "express";
 import { Request, Response, NextFunction } from "express";
-
+import * as nodeCron from "node-cron";
+import { NodeCronTimezoneType } from "./cron/CronClassInterface";
+import { generateQueueJobId } from "./utils/utils";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { createBullBoard } from "@bull-board/api";
 import { ExpressAdapter } from "@bull-board/express";
@@ -12,6 +14,22 @@ import { initialiseRedisConnection } from "./utils/RedisConfig";
 import cronJobsProcessorWorker from "./workers/CronJobsProcessor/CronJobsProcessorWorker";
 import { DEFAULTS } from "./utils/constants";
 import { loginPageData } from "./utils/loginPage";
+import { Job } from "bullmq";
+
+interface CronJobs {
+  name: string;
+  id: string;
+  jobId: string;
+}
+export interface CronJobInterface {
+  id: string;
+  runMethod: () => void;
+  cronTab: string;
+  name: string;
+  active: boolean;
+  timezone: NodeCronTimezoneType; // Available zone used by node-cron https://github.com/node-cron/tz-offset/blob/master/generated/offsets.json
+  scheduled: boolean; // from node-cron. should default to true
+}
 
 export interface WorkerInterface {
   worker: BaseWorkerClass<any>;
@@ -39,6 +57,8 @@ export interface WorkerManagerConfigInterface {
     username?: string;
     password?: string;
   };
+  crons?: CronJobInterface[];
+  onError?: (opts: { job: CronJobInterface; message: string }) => void;
 }
 
 export interface WorkerManagerOptsInterface {
@@ -147,5 +167,43 @@ export class WorkerManager {
         message: "Invalid username or password",
       });
     }
+  }
+
+  public async setupCron() {
+    const crons = this.config.crons;
+    if (!crons) {
+      console.log("No crons to setup");
+      return;
+    }
+    console.log("Setting up cron tasks", { length: crons.length });
+    crons
+      .filter((j) => j.active)
+      .forEach((job) => {
+        if (!nodeCron.validate(job.cronTab)) {
+          console.log("Error in crontab", { job });
+          this.config?.onError?.({ job, message: "Error in crontab" });
+          return;
+        }
+
+        const task = nodeCron.schedule(
+          job.cronTab,
+          () => {
+            cronJobsProcessorWorker.enqueue(
+              job.name,
+              { id: job.id, jobList: crons },
+              { jobId: generateQueueJobId(job.id) }
+            );
+          },
+          {
+            scheduled: job.scheduled,
+            timezone: job.timezone,
+          }
+        );
+
+        task.start();
+      });
+    console.log("Setting up cron tasks completed", {
+      length: crons.length,
+    });
   }
 }

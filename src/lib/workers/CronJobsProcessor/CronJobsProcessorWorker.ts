@@ -1,4 +1,4 @@
-import { CronJobInterface } from "../../CronManager";
+import { CronJobInterface } from "../../WorkerManager";
 import { BaseWorkerClass } from "../BaseWorkerClass";
 import * as path from "path";
 // https://docs.aws.amazon.com/en_us/chime/latest/dg/media-capture-events.html

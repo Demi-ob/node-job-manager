@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import express from "express";
 import exampleWorker from "./workers/exampleWorker/ExampleWorker";
 import { workerManager } from "./workerList";
-import { cronManager } from "./cronList";
 
 const app = express();
 
@@ -10,10 +9,7 @@ const app = express();
 const wm = workerManager(app);
 wm.setWorkers();
 wm.setupBullBoard();
-
-// setup cron
-const cm = cronManager;
-cm.setupCron();
+wm.setupCron();
 
 setInterval(() => {
   exampleWorker.enqueue("asdsa", { key: "hey" });
