@@ -2,13 +2,13 @@
   "name": "node-job-manager",
   "version": "1.0.0",
   "description": "A BullMq based library for running workers and crons in node.js express application",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "Demi O",
   "license": "ISC",
   "dependencies": {
     "@bull-board/api": "^5.15.3",
