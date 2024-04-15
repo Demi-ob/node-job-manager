@@ -19,7 +19,7 @@ class CronJobsProcessorWorker extends BaseWorkerClass<CronJobsProcessorWorkerDat
     });
   }
 
-  processMethod = path.join(__dirname, "CronJobsProcessor.ts");
+  exec = path.join(__dirname, "CronJobsProcessor.ts");
 }
 
 const cronJobsProcessorWorker = new CronJobsProcessorWorker();

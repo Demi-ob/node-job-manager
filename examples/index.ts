@@ -16,7 +16,7 @@ const cm = cronManager;
 cm.setupCron();
 
 setInterval(() => {
-  exampleWorker.performAsync("asdsa", { key: "hey" });
+  exampleWorker.enqueue("asdsa", { key: "hey" });
 }, 3000);
 
 app.use("/health", (req: Request, res: Response) => {

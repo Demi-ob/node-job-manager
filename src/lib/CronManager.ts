@@ -67,7 +67,7 @@ export class CronManager {
 
   private pushToCronQueue(opts: CronJobs) {
     const { id, jobId, name } = opts;
-    cronJobsProcessorWorker.performAsync(
+    cronJobsProcessorWorker.enqueue(
       name,
       { id, jobList: this.jobs },
       { jobId }

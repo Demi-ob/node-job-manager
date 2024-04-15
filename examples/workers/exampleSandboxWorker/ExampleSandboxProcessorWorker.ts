@@ -14,7 +14,7 @@ class ExampleSandboxProcessorWorker extends BaseWorkerClass<ExampleSandboxProces
     });
   }
 
-  protected processMethod = path.join(__dirname, "ExampleSandboxProcessor.ts");
+  protected exec = path.join(__dirname, "ExampleSandboxProcessor.ts");
 }
 
 const exampleSandboxProcessorWorker = new ExampleSandboxProcessorWorker();

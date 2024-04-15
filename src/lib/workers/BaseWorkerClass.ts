@@ -49,7 +49,7 @@ export abstract class BaseWorkerClass<DataType> {
     //   connection,
     // })
     // await queueScheduler.waitUntilReady()
-    // NOTE: Using queueEvents did not allow performAsync promise to resolve until the process was actually completed which defeats the purpose of having an async worker
+    // NOTE: Using queueEvents did not allow enqueue promise to resolve until the process was actually completed which defeats the purpose of having an async worker
     // this.queueEvents = new QueueEvents(this.queueName, {
     //   connection,
     // });
@@ -57,21 +57,19 @@ export abstract class BaseWorkerClass<DataType> {
     // this.queueEvents.on("completed", this.onCompleted);
   }
 
-  public readonly performAsync = async (
+  public readonly enqueue = async (
     name: string,
     data: DataType,
     opts?: JobsOptions
   ): Promise<void> => {
-    console.log(`PerformAsync called for queueName=${this.queueName}`);
+    console.log(`enqueue called for queueName=${this.queueName}`);
     await this.queue.add(name, data, opts);
   };
 
   public readonly startListeningOnWorker = async () => {
     await this.initialiseWorker();
     const processor =
-      typeof this.processMethod === "string"
-        ? this.processMethod
-        : this.wrappedProcessMethod;
+      typeof this.exec === "string" ? this.exec : this.wrappedProcessMethod;
     const worker = new Worker<DataType>(this.queueName, processor, {
       connection: connection!,
       concurrency: 50,
@@ -91,23 +89,21 @@ export abstract class BaseWorkerClass<DataType> {
    *  https://docs.bullmq.io/guide/queuescheduler
    * @protected
    */
-  protected abstract processMethod:
-    | ((job: Job<DataType>) => Promise<void>)
-    | string;
+  protected abstract exec: ((job: Job<DataType>) => Promise<void>) | string;
 
   private wrappedProcessMethod = async (job: Job<DataType>): Promise<void> => {
     console.log(
-      `started processing worker job.id=${job.id}, queue=${this.queueName}`
+      `[${this.constructor.name}#exec] started processing worker job.id=${job.id}, queue=${this.queueName}`
     );
     this.job = job;
-    if (typeof this.processMethod === "string") {
-      const msg = `[BaseWorkerClass#wrappedProcessMethod] processMethod should not be called for string queueName=${this.queueName}`;
+    if (typeof this.exec === "string") {
+      const msg = `BaseWorkerClass [${this.constructor.name}#exec] exec should not be called for string queueName=${this.queueName}`;
       console.log(msg);
       throw new Error(msg);
     }
-    await this.processMethod(job);
+    await this.exec(job);
     console.log(
-      `Finished processing worker job.id=${job.id}, queue=${this.queueName}`
+      `[${this.constructor.name}#exec] Finished processing worker job.id=${job.id}, queue=${this.queueName}`
     );
   };
 

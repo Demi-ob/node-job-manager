@@ -1,5 +1,5 @@
 import { SandboxedJob } from "bullmq";
-import { ExampleSandboxProcessorWorkerDataType } from "./exampleSandboxProcessorWorker";
+import { ExampleSandboxProcessorWorkerDataType } from "./ExampleSandboxProcessorWorker";
 
 module.exports = async (
   job: SandboxedJob<ExampleSandboxProcessorWorkerDataType>

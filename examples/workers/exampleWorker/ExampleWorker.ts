@@ -22,7 +22,7 @@ class ExampleWorker extends BaseWorkerClass<ExampleWorkerDataType> {
     });
   }
 
-  processMethod = async (job: Job<ExampleWorkerDataType>): Promise<void> => {
+  exec = async (job: Job<ExampleWorkerDataType>): Promise<void> => {
     const jobData = job.data;
     console.log(
       `[ExampleWorkerDataType#processMethod] started worker job.id=${job?.id}`
