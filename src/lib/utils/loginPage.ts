@@ -1,3 +1,5 @@
+import { Request, Response, NextFunction } from "express";
+
 export const loginPageData = (opts: {
   loginUrl: string;
   queueUrl: string;
@@ -135,3 +137,43 @@ export const loginPageData = (opts: {
   }
 </script>
 `;
+
+export const verifyLogin =
+  (opts: { loginUrl: string; queueUrl: string }) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const { session } = req as any;
+    const loginHtml = loginPageData({
+      loginUrl: opts.loginUrl,
+      queueUrl: opts.queueUrl,
+    });
+
+    if (session.userid) {
+      next();
+    } else {
+      res
+        .set(
+          "Content-Security-Policy",
+          "default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'"
+        )
+        .send(loginHtml);
+    }
+  };
+
+export const attemptLogin =
+  (opts: { bullBoardUsername?: string; bullBoardPassword?: string }) =>
+  (req: Request, res: Response) => {
+    console.log("attemptLogin", req.body);
+    const username = opts.bullBoardUsername;
+    const password = opts.bullBoardPassword;
+    const { session } = req as any;
+
+    if (req.body.username === username && req.body.password === password) {
+      session.userid = req.body.username;
+      res.json({ success: true });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Invalid username or password",
+      });
+    }
+  };

@@ -1,4 +1,4 @@
 /node_modules
 /.env
 dist/
-dump.rdp
+dump.rdb

@@ -13,7 +13,7 @@ import { BaseWorkerClass } from "./workers/BaseWorkerClass";
 import { initialiseRedisConnection } from "./utils/RedisConfig";
 import cronJobsProcessorWorker from "./workers/CronJobsProcessor/CronJobsProcessorWorker";
 import { DEFAULTS } from "./utils/constants";
-import { loginPageData } from "./utils/loginPage";
+import { attemptLogin, loginPageData, verifyLogin } from "./utils/loginPage";
 import { Job } from "bullmq";
 
 interface CronJobs {
@@ -129,44 +129,22 @@ export class WorkerManager {
       }),
       cookieParser()
     );
-    this.app.use(this.queueUrl, this.verifyLogin, serverAdapter.getRouter());
-    this.app.post(this.loginUrl, this.attemptLogin);
-  }
-
-  private verifyLogin(req: Request, res: Response, next: NextFunction) {
-    const { session } = req as any;
-    const loginHtml = loginPageData({
-      loginUrl: this.loginUrl,
-      queueUrl: this.queueUrl,
-    });
-
-    if (session.userid) {
-      next();
-    } else {
-      res
-        .set(
-          "Content-Security-Policy",
-          "default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'"
-        )
-        .send(loginHtml);
-    }
-  }
-
-  private attemptLogin(req: Request, res: Response) {
-    console.log("attemptLogin", req.body);
-    const username = this.config?.bullBoard?.username;
-    const password = this.config?.bullBoard?.password;
-    const { session } = req as any;
-
-    if (req.body.username === username && req.body.password === password) {
-      session.userid = req.body.username;
-      res.json({ success: true });
-    } else {
-      res.status(401).json({
-        success: false,
-        message: "Invalid username or password",
-      });
-    }
+    this.app.use(
+      this.queueUrl,
+      verifyLogin({
+        loginUrl: this.loginUrl,
+        queueUrl: this.queueUrl,
+      }),
+      serverAdapter.getRouter()
+    );
+    
+    this.app.post(
+      this.loginUrl,
+      attemptLogin({
+        bullBoardUsername: this.config?.bullBoard?.username,
+        bullBoardPassword: this.config?.bullBoard?.password,
+      })
+    );
   }
 
   public async setupCron() {
