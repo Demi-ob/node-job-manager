@@ -1,12 +1,8 @@
-import { Request, Response, Router } from "express";
-import { CronManager, WorkerInterface, WorkerManager } from "../src";
+import { Request, Response } from "express";
 import express from "express";
-import exampleSandboxProcessorWorker from "./workers/exampleSandboxWorker/exampleSandboxProcessorWorker";
 import exampleWorker from "./workers/exampleWorker/ExampleWorker";
-import { workerList, workerManager } from "./workerList";
-import { ExampleCron } from "../src/lib/cron/ExampleCron";
-import { CronJobInterface } from "../src/lib/CronManager";
-import { cronManager, jobs } from "./cronList";
+import { workerManager } from "./workerList";
+import { cronManager } from "./cronList";
 
 const app = express();
 

@@ -1,5 +1,5 @@
 import { WorkerInterface, WorkerManager } from "../src";
-import exampleSandboxProcessorWorker from "./workers/exampleSandboxWorker/exampleSandboxProcessorWorker";
+import exampleSandboxProcessorWorker from "./workers/exampleSandboxWorker/ExampleSandboxProcessorWorker";
 import exampleWorker from "./workers/exampleWorker/ExampleWorker";
 import * as express from "express";
 

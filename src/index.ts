@@ -1,19 +1,9 @@
-import {
+export {
   WorkerManager,
   WorkerInterface,
   WorkerManagerConfigInterface,
   WorkerManagerOptsInterface,
 } from "./lib/WorkerManager";
-import { CronManager } from "./lib/CronManager";
-import { BaseWorkerClass } from "./lib/workers/BaseWorkerClass";
-import { CronClassInterface } from "./lib/cron/CronClassInterface";
-
-export {
-  WorkerManager,
-  CronManager,
-  BaseWorkerClass,
-  CronClassInterface,
-  WorkerInterface,
-  WorkerManagerConfigInterface,
-  WorkerManagerOptsInterface,
-};
+export { CronManager, CronJobInterface } from "./lib/CronManager";
+export { BaseWorkerClass } from "./lib/workers/BaseWorkerClass";
+export { CronClassInterface, } from "./lib/cron/CronClassInterface";

@@ -1,4 +1,4 @@
-import { CronJobInterface, CronManager } from "../src/lib/CronManager";
+import { CronJobInterface } from "../src/lib/CronManager";
 import { ExampleCron } from "../src/lib/cron/ExampleCron";
 
 export const jobs: CronJobInterface[] = [
