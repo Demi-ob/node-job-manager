@@ -1,0 +1,30 @@
+{
+  "name": "node-job-manager",
+  "version": "1.0.0",
+  "description": "A BullMq based library for running workers and crons in node.js express application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@bull-board/api": "^5.15.3",
+    "@bull-board/express": "^5.15.3",
+    "bullmq": "^5.7.1",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "ioredis": "^5.3.2",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.7",
+    "@types/express": "^4.17.21",
+    "@types/express-session": "^1.18.0",
+    "@types/node-cron": "^3.0.11",
+    "typescript": "^5.4.5"
+  }
+}
