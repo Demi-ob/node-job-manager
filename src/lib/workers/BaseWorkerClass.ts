@@ -12,7 +12,7 @@ import { connection } from "../utils/RedisConfig";
 
 console.log("Initialising redis connection");
 
-export class BaseWorkerClass<DataType> {
+export abstract class BaseWorkerClass<DataType> {
   public readonly queue: Queue;
 
   // queueEvents: QueueEvents;
@@ -91,12 +91,9 @@ export class BaseWorkerClass<DataType> {
    *  https://docs.bullmq.io/guide/queuescheduler
    * @protected
    */
-  protected processMethod: ((job: Job<DataType>) => Promise<void>) | string =
-    async (job: Job<DataType>): Promise<void> => {
-      throw new Error(
-        `${this.constructor.name} processMethod must be overwritten`
-      );
-    };
+  protected abstract processMethod:
+    | ((job: Job<DataType>) => Promise<void>)
+    | string;
 
   private wrappedProcessMethod = async (job: Job<DataType>): Promise<void> => {
     console.log(
