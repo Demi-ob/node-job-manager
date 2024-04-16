@@ -1,6 +1,6 @@
 {
   "name": "node-job-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A BullMq based library for running workers and crons in node.js express application",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
