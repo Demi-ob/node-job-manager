@@ -1,5 +1,6 @@
 import { CronJobInterface, WorkerInterface, WorkerManager } from "../src";
 import { ExampleCron } from "../src/lib/cron/ExampleCron";
+import { connection } from "./Redis/redis_interface";
 import exampleSandboxProcessorWorker from "./workers/exampleSandboxWorker/ExampleSandboxProcessorWorker";
 import exampleWorker from "./workers/exampleWorker/ExampleWorker";
 import * as express from "express";
@@ -47,15 +48,9 @@ export const workerManager = (app: express.Express) =>
         username: "test_username",
         password: "test_password",
       },
-      redis: {
-        username: "test_username",
-        password: "test_password",
-        host: "localhost",
-        port: 6379,
-      },
       onError: ({ job, message }) => {
         console.log("Error in cron", { job, message });
       },
-      crons: jobs,
+      cron: { jobs, connection: connection, enable: true },
     },
   });

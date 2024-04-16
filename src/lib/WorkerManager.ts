@@ -1,5 +1,4 @@
 import * as express from "express";
-import { Request, Response, NextFunction } from "express";
 import * as nodeCron from "node-cron";
 import { NodeCronTimezoneType } from "./cron/CronClassInterface";
 import { generateQueueJobId } from "./utils/utils";
@@ -9,12 +8,14 @@ import { ExpressAdapter } from "@bull-board/express";
 import cookieParser from "cookie-parser";
 import sessions from "express-session";
 import { BaseWorkerClass } from "./workers/BaseWorkerClass";
+import IORedis from "ioredis";
 
 import { initialiseRedisConnection } from "./utils/RedisConfig";
-import cronJobsProcessorWorker from "./workers/CronJobsProcessor/CronJobsProcessorWorker";
+import CronJobsProcessorWorker, {
+  CronJobsProcessorWorkerDataType,
+} from "./workers/CronJobsProcessor/CronJobsProcessorWorker";
 import { DEFAULTS } from "./utils/constants";
-import { attemptLogin, loginPageData, verifyLogin } from "./utils/loginPage";
-import { Job } from "bullmq";
+import { attemptLogin, verifyLogin } from "./utils/loginPage";
 
 interface CronJobs {
   name: string;
@@ -36,13 +37,6 @@ export interface WorkerInterface {
   enableWorker: boolean;
 }
 
-const DEFAULT_WORKERS: WorkerInterface[] = [
-  {
-    worker: cronJobsProcessorWorker,
-    enableWorker: true,
-  },
-];
-
 export interface WorkerManagerConfigInterface {
   bullBoard: {
     username?: string;
@@ -51,13 +45,7 @@ export interface WorkerManagerConfigInterface {
     pathPrefix?: string;
     sessionTimeout?: number;
   };
-  redis: {
-    port?: number;
-    host?: string;
-    username?: string;
-    password?: string;
-  };
-  crons?: CronJobInterface[];
+  cron?: { jobs: CronJobInterface[]; connection: IORedis; enable: boolean };
   onError?: (opts: { job: CronJobInterface; message: string }) => void;
 }
 
@@ -74,8 +62,26 @@ export class WorkerManager {
   private config: WorkerManagerConfigInterface;
   private loginUrl: string;
   private queueUrl: string;
+  private shouldSetupCron: boolean = false;
+  private cronWorker:
+    | BaseWorkerClass<CronJobsProcessorWorkerDataType>
+    | undefined;
   constructor(opts: WorkerManagerOptsInterface) {
-    this.workers = [...DEFAULT_WORKERS, ...opts.workers] as const;
+    this.workers = [...opts.workers] as const;
+    if (opts.config.cron?.enable && !opts.config.cron?.connection) {
+      throw new Error("Cron connection is required when enabled");
+    }
+
+    if (opts.config.cron?.enable) {
+      this.cronWorker = new CronJobsProcessorWorker({
+        connection: opts.config.cron.connection,
+      });
+      this.workers.push({
+        worker: this.cronWorker,
+        enableWorker: true,
+      });
+    }
+
     this.app = opts.app;
     this.config = opts.config;
 
@@ -87,10 +93,7 @@ export class WorkerManager {
 
   public async setWorkers() {
     console.log("Setting up worker tasks", { length: this.workers.length });
-    await initialiseRedisConnection({
-      ...this.config?.redis,
-    });
-    this.workers.forEach((worker) => {
+    await this.workers.forEach((worker) => {
       if (worker.enableWorker) {
         worker.worker.startListeningOnWorker();
       }
@@ -137,7 +140,7 @@ export class WorkerManager {
       }),
       serverAdapter.getRouter()
     );
-    
+
     this.app.post(
       this.loginUrl,
       attemptLogin({
@@ -148,15 +151,21 @@ export class WorkerManager {
   }
 
   public async setupCron() {
-    const crons = this.config.crons;
-    if (!crons) {
+    const cron = this.config.cron;
+    if (!this.cronWorker) {
+      console.log("Cron worker not set");
+      return;
+    }
+
+    if (!cron) {
       console.log("No crons to setup");
       return;
     }
-    console.log("Setting up cron tasks", { length: crons.length });
-    crons
-      .filter((j) => j.active)
-      .forEach((job) => {
+
+    console.log("Setting up cron tasks", { length: cron?.jobs.length });
+    cron?.jobs
+      ?.filter((j) => j.active)
+      ?.forEach((job) => {
         if (!nodeCron.validate(job.cronTab)) {
           console.log("Error in crontab", { job });
           this.config?.onError?.({ job, message: "Error in crontab" });
@@ -166,9 +175,9 @@ export class WorkerManager {
         const task = nodeCron.schedule(
           job.cronTab,
           () => {
-            cronJobsProcessorWorker.enqueue(
+            this.cronWorker?.enqueue(
               job.name,
-              { id: job.id, jobList: crons },
+              { id: job.id, jobList: cron?.jobs },
               { jobId: generateQueueJobId(job.id) }
             );
           },
@@ -181,7 +190,7 @@ export class WorkerManager {
         task.start();
       });
     console.log("Setting up cron tasks completed", {
-      length: crons.length,
+      length: cron?.jobs.length,
     });
   }
 }

@@ -1,5 +1,6 @@
 import { Job } from "bullmq";
 import { BaseWorkerClass } from "../../../src";
+import { connection } from "../../Redis/redis_interface";
 
 // How to create a worker
 // queueName should be the class name to prevent to classes using the same queue
@@ -14,6 +15,7 @@ const queueName = "ExampleWorker";
 class ExampleWorker extends BaseWorkerClass<ExampleWorkerDataType> {
   constructor() {
     super({
+      connection: connection,
       attempts: 3,
       backoff: {
         type: "exponential",

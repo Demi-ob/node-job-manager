@@ -1,6 +1,8 @@
 import { CronJobInterface } from "../../WorkerManager";
 import { BaseWorkerClass } from "../BaseWorkerClass";
 import * as path from "path";
+import IORedis from "ioredis";
+
 // https://docs.aws.amazon.com/en_us/chime/latest/dg/media-capture-events.html
 
 export type CronJobsProcessorWorkerDataType = {
@@ -9,8 +11,9 @@ export type CronJobsProcessorWorkerDataType = {
 };
 
 class CronJobsProcessorWorker extends BaseWorkerClass<CronJobsProcessorWorkerDataType> {
-  constructor() {
+  constructor(opts: { connection: IORedis }) {
     super({
+      connection: opts.connection,
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -22,5 +25,9 @@ class CronJobsProcessorWorker extends BaseWorkerClass<CronJobsProcessorWorkerDat
   exec = path.join(__dirname, "CronJobsProcessor.js");
 }
 
-const cronJobsProcessorWorker = new CronJobsProcessorWorker();
-export default cronJobsProcessorWorker;
+// const cronJobsProcessorWorker = (opts: { connection: IORedis }) =>
+//   new CronJobsProcessorWorker({
+//     connection: opts.connection,
+//   });
+// export default cronJobsProcessorWorker;
+export default CronJobsProcessorWorker;

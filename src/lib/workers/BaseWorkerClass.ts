@@ -8,7 +8,6 @@
  */
 import { Job, JobsOptions, Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
-import { connection } from "../utils/RedisConfig";
 
 console.log("Initialising redis connection");
 
@@ -19,12 +18,12 @@ export abstract class BaseWorkerClass<DataType> {
   job: Job | undefined;
   public readonly queueName: string;
 
-  constructor(opts?: JobsOptions) {
-    opts = opts || {};
+  constructor(private opts: JobsOptions & { connection: IORedis }) {
+    // opts = opts || {};
     this.queueName = this.constructor.name;
     console.log("Initialising queue", this.queueName);
     this.queue = new Queue(this.queueName, {
-      connection: connection!,
+      connection: opts.connection,
       defaultJobOptions: opts,
     });
   }
@@ -32,7 +31,7 @@ export abstract class BaseWorkerClass<DataType> {
   public queueData() {
     return {
       queue: this.queue,
-      connection: connection,
+      connection: this.opts?.connection,
       queueName: this.queueName,
     };
   }
@@ -71,7 +70,7 @@ export abstract class BaseWorkerClass<DataType> {
     const processor =
       typeof this.exec === "string" ? this.exec : this.wrappedProcessMethod;
     const worker = new Worker<DataType>(this.queueName, processor, {
-      connection: connection!,
+      connection: this.opts?.connection,
       concurrency: 50,
     });
     worker.on("completed", (job) => {
