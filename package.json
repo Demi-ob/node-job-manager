@@ -2,11 +2,12 @@
   "name": "node-job-manager",
   "version": "1.0.2",
   "description": "A BullMq based library for running workers and crons in node.js express application",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc",
+    "examples": "npm run build && node dist/examples/index.js"
   },
   "keywords": [],
   "author": "Demi O",

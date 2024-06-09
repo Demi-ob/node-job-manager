@@ -1,6 +1,7 @@
 import { Job } from "bullmq";
 import { BaseWorkerClass } from "../../../src";
-import { connection } from "../../Redis/redis_interface";
+import { getConnection } from "../../Redis/redis_interface";
+import IORedis from "ioredis";
 
 // How to create a worker
 // queueName should be the class name to prevent to classes using the same queue
@@ -10,12 +11,11 @@ import { connection } from "../../Redis/redis_interface";
 // Make sure to add super(queueName) to constructor
 
 type ExampleWorkerDataType = { key: string };
-const queueName = "ExampleWorker";
 
-class ExampleWorker extends BaseWorkerClass<ExampleWorkerDataType> {
-  constructor() {
+export class ExampleWorker extends BaseWorkerClass<ExampleWorkerDataType> {
+  constructor(opts: { connection: IORedis }) {
     super({
-      connection: connection,
+      connection: opts.connection,
       attempts: 3,
       backoff: {
         type: "exponential",
@@ -37,5 +37,5 @@ class ExampleWorker extends BaseWorkerClass<ExampleWorkerDataType> {
   };
 }
 
-const exampleWorker = new ExampleWorker();
+const exampleWorker = () => new ExampleWorker({ connection: getConnection() });
 export default exampleWorker;

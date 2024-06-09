@@ -63,6 +63,25 @@ export abstract class BaseWorkerClass<DataType> {
   ): Promise<void> => {
     console.log(`enqueue called for queueName=${this.queueName}`);
     await this.queue.add(name, data, opts);
+
+    /**
+ * NOTE: An error occurs when you call the  await this.queue.add(name, data, opts); multiple times with the same connection object
+ * Even if we use multiple queues the issue persists. 
+ * The current hack is to create a new connection object for each call rather than using a cached connection
+ * 
+ * The error message looks like this:
+ * ReplyError: ERR user_script:45: Bad data format in input. script: 9b67b263800b6f824ebff3728c865ac78083a12b, on @user_script:45.
+    at parseError (/projects/job-manager/node_modules/redis-parser/lib/parser.js:179:12)
+    at parseType (/projects/job-manager/node_modules/redis-parser/lib/parser.js:302:14) {
+  command: {
+    name: 'evalsha',
+    args: [
+      '9b67b263800b6f824ebff3728c865ac78083a12b',
+      '7',
+      'bull:ExampleWorker:wait',
+      'bull:ExampleWorker:paused',
+ * 
+ */
   };
 
   public readonly startListeningOnWorker = async () => {

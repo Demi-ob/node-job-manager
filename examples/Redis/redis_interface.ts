@@ -13,3 +13,10 @@ export const connection = new IORedis({
   ...redisConfig,
   maxRetriesPerRequest: null,
 });
+
+export const getConnection = () => {
+  return new IORedis({
+    ...redisConfig,
+    maxRetriesPerRequest: null,
+  });
+};

@@ -7,11 +7,11 @@ import * as express from "express";
 
 export const workerList: WorkerInterface[] = [
   {
-    worker: exampleSandboxProcessorWorker,
+    worker: exampleSandboxProcessorWorker(),
     enableWorker: true,
   },
   {
-    worker: exampleWorker,
+    worker: exampleWorker(),
     enableWorker: true,
   },
 ];

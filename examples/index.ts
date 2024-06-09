@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import express from "express";
-import exampleWorker from "./workers/exampleWorker/ExampleWorker";
+import exampleWorker, {
+  ExampleWorker,
+} from "./workers/exampleWorker/ExampleWorker";
 import { workerManager } from "./workerList";
+import { getConnection } from "./Redis/redis_interface";
 
 const app = express();
 
@@ -12,7 +15,9 @@ wm.setupBullBoard();
 wm.setupCron();
 
 setInterval(() => {
-  exampleWorker.enqueue("asdsa", { key: "hey" });
+  exampleWorker().enqueue("asdsa", { key: "hey" });
+  exampleWorker().enqueue("asdsa", { key: "hey" });
+  exampleWorker().enqueue("asdsa", { key: "hey" });
 }, 3000);
 
 app.use("/health", (req: Request, res: Response) => {

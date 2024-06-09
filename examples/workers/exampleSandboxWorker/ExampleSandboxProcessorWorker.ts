@@ -1,11 +1,12 @@
 import * as path from "path";
 import { BaseWorkerClass } from "../../../src";
-import { connection } from "../../Redis/redis_interface";
+import { connection, getConnection } from "../../Redis/redis_interface";
+import IORedis from "ioredis";
 
 export type ExampleSandboxProcessorWorkerDataType = { key: string };
 
 class ExampleSandboxProcessorWorker extends BaseWorkerClass<ExampleSandboxProcessorWorkerDataType> {
-  constructor() {
+  constructor(connection: IORedis) {
     super({
       connection: connection,
       attempts: 1,
@@ -16,8 +17,9 @@ class ExampleSandboxProcessorWorker extends BaseWorkerClass<ExampleSandboxProces
     });
   }
 
-  protected exec = path.join(__dirname, "ExampleSandboxProcessor.ts");
+  protected exec = path.join(__dirname, "ExampleSandboxProcessor.js");
 }
 
-const exampleSandboxProcessorWorker = new ExampleSandboxProcessorWorker();
+const exampleSandboxProcessorWorker = () =>
+  new ExampleSandboxProcessorWorker(getConnection());
 export default exampleSandboxProcessorWorker;
